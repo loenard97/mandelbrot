@@ -16,7 +16,7 @@ $ mandelbrot --position=island --width=1920 --height=1080 --colormap=rainbow
 ```
 
 # Images
-[](/img/flower_rainbow.png)
-[](/img/island_gn_bu.png)
-[](/img/seahorse_rainbow.png)
-[](/img/tendrils_red.png)
+![](img/flower_rainbow.png)
+![](img/island_gn_bu.png)
+![](img/seahorse_rainbow.png)
+![](img/tendrils_red.png)
