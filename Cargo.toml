@@ -1,0 +1,13 @@
+[package]
+name = "mandelbrot"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.4.16", features = ["derive"] }
+colorgrad = "0.6.2"
+crossbeam = "0.8.3"
+image = "0.24.7"
+num = "0.4.1"
