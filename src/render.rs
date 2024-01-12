@@ -24,37 +24,74 @@ pub fn pixel_to_point(
 }
 
 pub fn render(
-    pixels: &mut [u8],
+    buffer: &mut [u8],
     bounds: (usize, usize),
     upper_left: Complex<f64>,
     lower_right: Complex<f64>,
-    limit: usize,
+    colormap: &str,
+    iterations: u32,
 ) {
+    let color_map = match colormap {
+        "blues" => colorgrad::blues(),
+        "br_bg" => colorgrad::br_bg(),
+        "bu_gn" => colorgrad::bu_gn(),
+        "bu_pu" => colorgrad::bu_pu(),
+        "cividis" => colorgrad::cividis(),
+        "cool" => colorgrad::cool(),
+        "cubehelix_default" => colorgrad::cubehelix_default(),
+        "gn_bu" => colorgrad::gn_bu(),
+        "greens" => colorgrad::greens(),
+        "greys" => colorgrad::greys(),
+        "inferno" => colorgrad::inferno(),
+        "magma" => colorgrad::magma(),
+        "or_rd" => colorgrad::or_rd(),
+        "oranges" => colorgrad::oranges(),
+        "pi_yg" => colorgrad::pi_yg(),
+        "plasma" => colorgrad::plasma(),
+        "pr_gn" => colorgrad::pr_gn(),
+        "pu_bu" => colorgrad::pu_bu(),
+        "pu_bu_gn" => colorgrad::pu_bu_gn(),
+        "pu_or" => colorgrad::pu_or(),
+        "pu_rd" => colorgrad::pu_rd(),
+        "purples" => colorgrad::purples(),
+        "rainbow" => colorgrad::rainbow(),
+        "rd_bu" => colorgrad::rd_bu(),
+        "rd_gy" => colorgrad::rd_gy(),
+        "rd_pu" => colorgrad::rd_pu(),
+        "rd_yl_bu" => colorgrad::rd_yl_bu(),
+        "rd_yl_gn" => colorgrad::rd_yl_gn(),
+        "reds" => colorgrad::reds(),
+        "sinebow" => colorgrad::sinebow(),
+        "spectral" => colorgrad::spectral(),
+        "turbo" => colorgrad::turbo(),
+        "viridis" => colorgrad::viridis(),
+        "warm" => colorgrad::warm(),
+        "yl_gn" => colorgrad::yl_gn(),
+        "yl_gn_bu" => colorgrad::yl_gn_bu(),
+        "yl_or_br" => colorgrad::yl_or_br(),
+        "yl_or_rd" => colorgrad::yl_or_rd(),
+        _ => colorgrad::greys(),
+    };
+
     for row in 0..bounds.1 {
         for col in 0..bounds.0 {
             let point = pixel_to_point(bounds, (col, row), upper_left, lower_right);
-            pixels[row * bounds.0 + col] = match mandelbrot::in_mandelbrot(point, limit) {
-                None => 0,
-                Some(count) => 255 - count as u8,
-            };
+            let point_val = mandelbrot::in_mandelbrot(point, iterations);
+            let offset = 3 * (row * bounds.0 + col);
+
+            if point_val != 0 {
+                let val = (iterations as f64 - point_val as f64) / iterations as f64;
+                let colors = color_map.at(val).to_rgba8();
+                buffer[offset] = colors[0];
+                buffer[offset + 1] = colors[1];
+                buffer[offset + 2] = colors[2];
+            } else {
+                buffer[offset] = 0;
+                buffer[offset + 1] = 0;
+                buffer[offset + 2] = 0;
+            }
         }
     }
-}
-
-pub fn color_map(pixels: &[u8]) -> Vec<u8> {
-    let mut map = vec![0; 3 * pixels.len()];
-    let color_map = colorgrad::plasma();
-
-    for (i, pixel) in pixels.into_iter().enumerate() {
-        if *pixel != 0 {
-            let colors = color_map.at(*pixel as f64 / 255.0).to_rgba8();
-            map[3 * i + 0] = colors[0];
-            map[3 * i + 1] = colors[1];
-            map[3 * i + 2] = colors[2];
-        }
-    }
-
-    map
 }
 
 pub fn write_image(
@@ -64,7 +101,9 @@ pub fn write_image(
 ) -> Result<(), std::io::Error> {
     let output = File::create(filename)?;
     let encoder = PngEncoder::new(output);
-    encoder.write_image(pixels, bounds.0 as u32, bounds.1 as u32, ColorType::Rgb8).unwrap();
+    encoder
+        .write_image(pixels, bounds.0 as u32, bounds.1 as u32, ColorType::Rgb8)
+        .unwrap();
 
     Ok(())
 }
